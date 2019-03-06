@@ -4,7 +4,28 @@
     ViewBag.Title = "Home Page";
 }
 
-@foreach (var item in Model)
-{
-    <div>@item.Name</div>
-}
+<select>
+    @foreach (var name in Model.Select(x => x.Name).Distinct().OrderBy(x => x))
+    {
+    <option name=>@name</option>
+    }
+</select>
+<table class="table table-striped">
+    <tr>
+        <th></th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.Symbol</td>
+            <td>
+                <img src="@item.Url" alt="logo"/></td>
+            <td>@item.MarketCap</td>
+            <td>@item.Price</td>
+            <td>@item.PercentChange1H</td>
+            <td>@item.PercentChange24H</td>
+            <td>@item.LastUpdated</td>
+        </tr>
+    }
+</table>

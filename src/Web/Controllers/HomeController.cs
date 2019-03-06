@@ -16,18 +16,22 @@ namespace Web.Controllers
             _coinMarketCapService = new CoinMarketCapService();
         }
 
-        public ActionResult Index()
+        public ActionResult Index(string currency, string sortDir)
+        {
+            return View(GetCurrencyData(currency, sortDir));
+        }
+
+        private List<CurrencyViewModel> GetCurrencyData(string currency, string sortDir = "asc")
         {
             int.TryParse(ConfigurationManager.AppSettings["CryptoCurrencyListLimit"], out var limit);
             int.TryParse(ConfigurationManager.AppSettings["StartPosition"], out var startPosition);
             var converCurrency = ConfigurationManager.AppSettings["ConvertTo"];
             var sortingField = ConfigurationManager.AppSettings["SortBy"];
-            var sortDirection = ConfigurationManager.AppSettings["SortDirection"];
-            var currencies = _coinMarketCapService.GetCurrencies(limit, converCurrency, sortingField, sortDirection, startPosition);
+            var sortDirection = !string.IsNullOrEmpty(sortDir) ? sortDir : ConfigurationManager.AppSettings["SortDirection"];
 
-            var model = Mapper.Map<List<CurrencyViewModel>>(currencies);
+            var currencies = _coinMarketCapService.GetCurrencies(currency, limit, converCurrency, sortingField, sortDirection, startPosition);
 
-            return View(model);
+            return Mapper.Map<List<CurrencyViewModel>>(currencies);
         }
     }
 }

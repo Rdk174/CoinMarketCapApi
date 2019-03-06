@@ -1,4 +1,6 @@
-﻿namespace BussinesFacade
+﻿using Newtonsoft.Json;
+
+namespace BussinesFacade
 {
     using System;
     using System.Collections.Generic;
@@ -34,6 +36,9 @@
         public long CmcRank { get; set; }
         public DateTimeOffset LastUpdated { get; set; }
         public Quote Quote { get; set; }
+
+        [JsonIgnore]
+        public string Logo { get; set; }
     }
 
     public class Quote
@@ -43,12 +48,19 @@
 
     public class Usd
     {
+        [JsonProperty("price")]
         public double Price { get; set; }
+        [JsonProperty("volume_24h")]
         public double Volume24H { get; set; }
+        [JsonProperty("percent_change_1h")]
         public double PercentChange1H { get; set; }
+        [JsonProperty("percent_change_24h")]
         public double PercentChange24H { get; set; }
         public double PercentChange7D { get; set; }
+        [JsonProperty("market_cap")]
         public double MarketCap { get; set; }
+
+        [JsonProperty("last_updated")]
         public DateTimeOffset LastUpdated { get; set; }
     }
 }
