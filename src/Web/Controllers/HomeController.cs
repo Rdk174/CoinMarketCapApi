@@ -1,30 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.Collections.Generic;
+using System.Configuration;
 using System.Web.Mvc;
+using AutoMapper;
+using BussinesFacade;
+using Web.Models;
 
 namespace Web.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly CoinMarketCapService _coinMarketCapService;
+
+        public HomeController()
+        {
+            _coinMarketCapService = new CoinMarketCapService();
+        }
+
         public ActionResult Index()
         {
-            return View();
-        }
+            int.TryParse(ConfigurationManager.AppSettings["CryptoCurrencyListLimit"], out var limit);
+            int.TryParse(ConfigurationManager.AppSettings["StartPosition"], out var startPosition);
+            var converCurrency = ConfigurationManager.AppSettings["ConvertTo"];
+            var sortingField = ConfigurationManager.AppSettings["SortBy"];
+            var sortDirection = ConfigurationManager.AppSettings["SortDirection"];
+            var currencies = _coinMarketCapService.GetCurrencies(limit, converCurrency, sortingField, sortDirection, startPosition);
 
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your application description page.";
+            var model = Mapper.Map<List<CurrencyViewModel>>(currencies);
 
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
+            return View(model);
         }
     }
 }
