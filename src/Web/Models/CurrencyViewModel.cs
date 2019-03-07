@@ -5,7 +5,7 @@ namespace Web.Models
     public class CurrencyViewModel
     {
         public string Name { get; set; }
-        public string Logo { get; set; }
+        public string Logo { get; set; } = "";
         public string Symbol { get; set; }
         public string Price { get; set; }
         public double PercentChange1H { get; set; }

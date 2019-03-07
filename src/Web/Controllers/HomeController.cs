@@ -34,10 +34,15 @@ namespace Web.Controllers
                 _indexViewModel.SelectedFilter = currency;
             }
 
+            if (currency == null)
+            {
+                RedirectToAction("Error", "Error", GetStatus() );
+            }
+
             return View(_indexViewModel);
         }
 
-        private List<CurrencyViewModel> GetCurrencyData()
+        private CurrencyModel GetCurrenciesModel()
         {
             int.TryParse(ConfigurationManager.AppSettings["CryptoCurrencyListLimit"], out var limit);
             int.TryParse(ConfigurationManager.AppSettings["StartPosition"], out var startPosition);
@@ -45,9 +50,17 @@ namespace Web.Controllers
             var sortingField = ConfigurationManager.AppSettings["SortBy"];
             var sortDirection = ConfigurationManager.AppSettings["SortDirection"];
 
-            var currencies = _coinMarketCapService.GetCurrencies(limit, converCurrency, sortingField, sortDirection, startPosition);
+            return _coinMarketCapService.GetCurrencies(limit, converCurrency, sortingField, sortDirection, startPosition);
+        }
+        private List<CurrencyViewModel> GetCurrencyData()
+        {
+            var currencies = GetCurrenciesModel();
+            return Mapper.Map<List<CurrencyViewModel>>(currencies.Data);
+        }
 
-            return Mapper.Map<List<CurrencyViewModel>>(currencies);
+        private StatusViewModel GetStatus()
+        {
+            return GetCurrenciesModel().Status;
         }
     }
 }

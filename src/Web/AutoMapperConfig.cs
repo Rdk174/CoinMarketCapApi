@@ -20,4 +20,18 @@ namespace Web
                 ;
         }
     }
+
+    public class ErrorProfile : Profile
+    {
+        public ErrorProfile()
+        {
+            CreateMap<Status, StatusViewModel>()
+                .ForMember(dest => dest.Timestamp, opts => opts.MapFrom(src => src.Timestamp))
+                .ForMember(dest => dest.CreditCount, opts => opts.MapFrom(src => src.CreditCount))
+                .ForMember(dest => dest.Elapsed, opts => opts.MapFrom(src => src.Elapsed))
+                .ForMember(dest => dest.ErrorCode, opts => opts.MapFrom(src => src.ErrorCode))
+                .ForMember(dest => dest.ErrorMessage, opts => opts.MapFrom(src => src.ErrorMessage))
+                ;
+        }
+    }
 }
