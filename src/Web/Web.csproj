@@ -159,6 +159,7 @@
     </Compile>
     <Compile Include="Models\CurrencyViewModel.cs" />
     <Compile Include="AutoMapperConfig.cs" />
+    <Compile Include="Models\IndexViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

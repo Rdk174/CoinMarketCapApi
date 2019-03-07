@@ -25,7 +25,7 @@ namespace BussinesFacade
             _apiKey = ConfigurationManager.AppSettings["APIKey"];
         }
 
-        public List<Data> GetCurrencies(string symbol, int limit, string convertCurrency, string sortingFields,
+        public List<Data> GetCurrencies(int limit, string convertCurrency, string sortingFields,
             string sortDirrections, int startPosition = 1)
         {
             var url = new UriBuilder(_coinMarketCapUrl);
@@ -44,29 +44,42 @@ namespace BussinesFacade
             client.Headers.Add("Accepts", "application/json");
             var json = client.DownloadString(url.ToString());
 
-            var e = JsonConvert.DeserializeObject<CurrencyModel>(json).Data.Take(10).ToList();
-            foreach (var item in e)
+            var currenciesData = JsonConvert.DeserializeObject<CurrencyModel>(json).Data;
+            var currenciesIdList=new List<long>();
+            foreach (var currency in currenciesData)
             {
-                item.Logo = GetLogoUrl(item.Id);
+                currenciesIdList.Add(currency.Id);
+            }
+            var logoUrlList = GetLogoUrl(currenciesIdList);
+            foreach (var currency in currenciesData)
+            {
+                foreach (var logoUrl in logoUrlList)
+                {
+                    if (currency.Id == logoUrl.Item.Id) currency.Logo = logoUrl.Item.Logo;
+                }
             }
 
-            return e;
+            return currenciesData;
         }
 
-        public string GetLogoUrl(long id)
+        public List<CurrencyInfo> GetLogoUrl(List<long> idList)
         {
             var url = new UriBuilder("https://pro-api.coinmarketcap.com/v1/cryptocurrency/info");
             var queryString = HttpUtility.ParseQueryString(string.Empty);
-            queryString["id"] = id.ToString();
-
+            queryString["id"] = String.Join(",", idList);
+ 
             url.Query = queryString.ToString();
 
             var client = new WebClient();
             client.Headers.Add("X-CMC_PRO_API_KEY", _apiKey);
             client.Headers.Add("Accepts", "application/json");
             var json = client.DownloadString(url.ToString());
-            json = json.Replace($"\"{id.ToString()}\":", "\"Item\":");
-            return JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Data.Item.Logo.ToString();
+            foreach (var id in idList)
+            {
+                json = json.Replace($"\"{id.ToString()}\":", "\"Item\":");
+            }
+
+            return JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Data;
         }
     }
 }

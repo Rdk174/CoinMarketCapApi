@@ -15,7 +15,7 @@ namespace Web
                 .ForMember(dest => dest.MarketCap, opts => opts.MapFrom(src => src.Quote.Usd.MarketCap))
                 .ForMember(dest => dest.PercentChange1H, opts => opts.MapFrom(src => src.Quote.Usd.PercentChange1H))
                 .ForMember(dest => dest.PercentChange24H, opts => opts.MapFrom(src => src.Quote.Usd.PercentChange24H))
-                .ForMember(dest => dest.Url, opts => opts.MapFrom(src => src.Logo))
+                .ForMember(dest => dest.Logo, opts => opts.MapFrom(src => src.Logo))
                 .ForMember(dest => dest.Symbol, opts => opts.MapFrom(src => src.Symbol))
                 ;
         }

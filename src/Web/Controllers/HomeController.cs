@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Web.Mvc;
+using System.Web.UI;
 using AutoMapper;
 using BussinesFacade;
 using Web.Models;
@@ -9,27 +12,40 @@ namespace Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly CoinMarketCapService _coinMarketCapService;
+        private CoinMarketCapService _coinMarketCapService;
+        private IndexViewModel _indexViewModel;
 
-        public HomeController()
+        [OutputCache(Duration = 60, Location = OutputCacheLocation.Client)]
+        public ActionResult Index(string currency="")
         {
             _coinMarketCapService = new CoinMarketCapService();
+            _indexViewModel = new IndexViewModel
+            {
+                CurrencyView = GetCurrencyData(),
+                SelectedFilter = "All"
+            };
+            if (!string.IsNullOrEmpty(currency))
+            {
+                _indexViewModel.CurrencyView = new List<CurrencyViewModel>()
+                {
+                    (_indexViewModel.CurrencyView.FirstOrDefault(x =>
+                        string.Equals(x.Name, currency, StringComparison.OrdinalIgnoreCase)))
+                };
+                _indexViewModel.SelectedFilter = currency;
+            }
+
+            return View(_indexViewModel);
         }
 
-        public ActionResult Index(string currency, string sortDir)
-        {
-            return View(GetCurrencyData(currency, sortDir));
-        }
-
-        private List<CurrencyViewModel> GetCurrencyData(string currency, string sortDir = "asc")
+        private List<CurrencyViewModel> GetCurrencyData()
         {
             int.TryParse(ConfigurationManager.AppSettings["CryptoCurrencyListLimit"], out var limit);
             int.TryParse(ConfigurationManager.AppSettings["StartPosition"], out var startPosition);
             var converCurrency = ConfigurationManager.AppSettings["ConvertTo"];
             var sortingField = ConfigurationManager.AppSettings["SortBy"];
-            var sortDirection = !string.IsNullOrEmpty(sortDir) ? sortDir : ConfigurationManager.AppSettings["SortDirection"];
+            var sortDirection = ConfigurationManager.AppSettings["SortDirection"];
 
-            var currencies = _coinMarketCapService.GetCurrencies(currency, limit, converCurrency, sortingField, sortDirection, startPosition);
+            var currencies = _coinMarketCapService.GetCurrencies(limit, converCurrency, sortingField, sortDirection, startPosition);
 
             return Mapper.Map<List<CurrencyViewModel>>(currencies);
         }
