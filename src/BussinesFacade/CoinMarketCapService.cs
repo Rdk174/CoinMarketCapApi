@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
 using System.Web;
+using BussinesFacade.Defenitions;
 using Newtonsoft.Json;
 
 
@@ -38,11 +39,25 @@ namespace BussinesFacade
             var client = new WebClient();
             client.Headers.Add("X-CMC_PRO_API_KEY", _apiKey);
             client.Headers.Add("Accepts", "application/json");
-            var json = client.DownloadString(url.ToString());
+            var json = string.Empty;
+            var errorString = string.Empty;
+            try
+            {
+                json = client.DownloadString(url.ToString());
+            }
+            catch (Exception error)
+            {
+                errorString = error.ToString();
+            }
+
+            var status = string.IsNullOrEmpty(errorString)
+                ? JsonConvert.DeserializeObject<CurrencyModel>(json).Status
+                : ParseError(errorString);
+
             var currencies = new CurrencyModel
             {
-                Status = JsonConvert.DeserializeObject<CurrencyModel>(json).Status,
-                Data = JsonConvert.DeserializeObject<CurrencyModel>(json).Status.ErrorCode == 0
+                Status = status,
+                Data = status.ErrorCode == 0
                     ? JsonConvert.DeserializeObject<CurrencyModel>(json).Data
                     : null
             };
@@ -78,10 +93,29 @@ namespace BussinesFacade
             var client = new WebClient();
             client.Headers.Add("X-CMC_PRO_API_KEY", _apiKey);
             client.Headers.Add("Accepts", "application/json");
-            var json = client.DownloadString(url.ToString());
-            return JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Status.ErrorCode == 0
-                ? JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Data.Values
-                : null;
+            try
+            {
+                var json = client.DownloadString(url.ToString());
+                return JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Status.ErrorCode == 0
+                    ? JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Data.Values
+                    : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private Status ParseError(string errorMessage)
+        {
+            var errorCode = new ErrorCodes().ErrorsDictionary;
+            foreach (var error in errorCode)
+            {
+                if (errorMessage.Contains(error.Key.ToString()))
+                    return new Status {ErrorCode = error.Key, ErrorMessage = error.Value};
+            }
+
+            return new Status { ErrorCode = 404, ErrorMessage = errorCode[404] }; ;
         }
     }
 }

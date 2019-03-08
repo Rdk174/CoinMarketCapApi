@@ -7,7 +7,7 @@ namespace Web.Controllers
     public class ErrorController : Controller
     {
         // GET
-        public ActionResult Error(Status status)
+        public ActionResult Error(StatusViewModel status)
         {
             return
             View(status);

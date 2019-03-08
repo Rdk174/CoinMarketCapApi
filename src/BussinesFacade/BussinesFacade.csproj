@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Attributes\StringValueAttributes.cs" />
     <Compile Include="CoinMarketCapService.cs" />
+    <Compile Include="Defenitions\ErrorCodes.cs" />
     <Compile Include="Models\CurrencyInfoModel.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Models\CurrencyModel.cs" />

@@ -14,15 +14,18 @@ namespace Web.Controllers
     {
         private CoinMarketCapService _coinMarketCapService;
         private IndexViewModel _indexViewModel;
+        private List<CurrencyViewModel> _currencyView;
+        private const string _defaultFilter = "All";
 
         [OutputCache(Duration = 60, Location = OutputCacheLocation.Client)]
         public ActionResult Index(string currency="")
         {
             _coinMarketCapService = new CoinMarketCapService();
+            _currencyView = GetCurrencyData();
             _indexViewModel = new IndexViewModel
             {
-                CurrencyView = GetCurrencyData(),
-                SelectedFilter = "All"
+                CurrencyView = _currencyView,
+                SelectedFilter = _defaultFilter
             };
             if (!string.IsNullOrEmpty(currency))
             {
@@ -31,12 +34,13 @@ namespace Web.Controllers
                     (_indexViewModel.CurrencyView.FirstOrDefault(x =>
                         string.Equals(x.Name, currency, StringComparison.OrdinalIgnoreCase)))
                 };
+                if (_indexViewModel.CurrencyView[0] == null) _indexViewModel.CurrencyView = _currencyView;
                 _indexViewModel.SelectedFilter = currency;
             }
-
-            if (currency == null)
+            
+            if (_indexViewModel.CurrencyView==null)
             {
-                RedirectToAction("Error", "Error", GetStatus() );
+               return RedirectToAction("Error", "Error", GetStatus() );
             }
 
             return View(_indexViewModel);
@@ -60,7 +64,8 @@ namespace Web.Controllers
 
         private StatusViewModel GetStatus()
         {
-            return GetCurrenciesModel().Status;
+            var status = GetCurrenciesModel();
+            return Mapper.Map<StatusViewModel>(status.Status);
         }
     }
 }

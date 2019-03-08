@@ -1,13 +1,12 @@
-﻿@model BussinesFacade.Status
+﻿@model Web.Models.StatusViewModel
 
 @{
     ViewBag.Title = "Error";
 }
 
-<form class="alert-danger">
-    <div class="alert-danger">
-        <label>Error Code</label>
-        
-    </div>
-</form>
+<div class="form-group">
+    <label>Error code:</label>@Model.ErrorCode<br />
+    <label>Error message:</label>@Model.ErrorMessage<br />
+    @DateTime.Now
+</div>
 

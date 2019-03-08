@@ -11,9 +11,8 @@
         <select class="form-control input-sm " id="SelectFilter" name="currency">
             <option value="" name=>All</option>
             @foreach (var name in Model.CurrencyView.Select(x => x.Name).Distinct().OrderBy(x => x))
-            {
-            
-            <option name="@name" @((Model.SelectedFilter == @name ? Html.Raw("selected=\"selected\""):Html.Raw("")))>@name</option>
+            {       
+                <option name="@name" @((Model.SelectedFilter == @name ? Html.Raw("selected=\"selected\""):Html.Raw("")))>@name</option>
             }
         </select>
         <button type="submit" class="btn btn-primary btn-sm ">Apply</button>
