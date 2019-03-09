@@ -6,5 +6,6 @@ namespace Web.Models
     {
         public string SelectedFilter { get; set; }
         public List<CurrencyViewModel> CurrencyView { get; set; }
+        public bool IsValid { get; set; } = true;
     }
 }

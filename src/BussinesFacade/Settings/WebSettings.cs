@@ -3,7 +3,7 @@ using BussinesFacade.Interfaces;
 
 namespace BussinesFacade.Settings
 {
-    public class WebSettings : IAppSettings
+    public class WebSettings : ISettings
     {
         public string GetSettings(string key, string defaultValue)
         {

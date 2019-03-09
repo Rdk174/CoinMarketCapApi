@@ -1,48 +1,13 @@
 ﻿@model Web.Models.IndexViewModel
-
 @{
     ViewBag.Title = "Home Page";
 }
 
-<form class="form-inline" method="get">
-    <div class="row">
-        <label for ="Filter">Filter</label>
-        <select class="form-control input-sm " id="Filter" name="currency">
-            <option value="" name="All">All</option>
-            @foreach (var name in Model.CurrencyView.Select(x => x.Name).Distinct().OrderBy(x => x))
-            {       
-                <option name="@name" @((Model.SelectedFilter == @name ? Html.Raw("selected=\"selected\""):Html.Raw("")))>@name</option>
-            }
-        </select>
-        <button type="submit" class="btn btn-primary btn-sm ">Apply</button>
-    </div>
-</form>
-<br />
-<form class="table">
-    <div class="table">
-        <table class="table table-striped">
-            <tr>
-                <th>Name</th>
-                <th>Symbol</th>
-                <th>Market Cap</th>
-                <th>Price</th>
-                <th>Change 1 hour, %</th>
-                <th>Change 24 hours, %</th>
-                <th>Last updated</th>
-            </tr>
-            @foreach (var item in Model.CurrencyView)
-            {
-                <tr>
-                    <td>@item.Name</td>
-                    <td>
-                        <img src="@item.Logo" alt="logo" height="16" width="16"/> @item.Symbol</td>
-                    <td>@item.MarketCap</td>
-                    <td>@item.Price</td>
-                    <td>@item.PercentChange1H</td>
-                    <td>@item.PercentChange24H</td>
-                    <td>@item.LastUpdated</td>
-                </tr>
-            }
-        </table>
-    </div>
-</form>
+@if (Model.IsValid)
+{
+    @Html.Partial("Table", Model);
+}
+else
+{
+    @Html.Partial("Error");
+}

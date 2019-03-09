@@ -1,9 +1,10 @@
-﻿using BussinesFacade.Models;
+﻿using System.Collections.Generic;
+using BussinesFacade.Models;
 
 namespace BussinesFacade.Interfaces
 {
-    public interface ICoinMarketCapService
+    public interface ICurrencyService
     {
-        CurrencyModel GetCurrencies(int limit, string convertCurrency, int startPosition);
+        List<Data> GetCurrencies(int limit, string convertCurrency, int startPosition);
     }
 }

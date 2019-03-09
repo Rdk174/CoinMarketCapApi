@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Web;
-using BussinesFacade.Defenitions;
 using BussinesFacade.Interfaces;
 using BussinesFacade.Models;
 using Newtonsoft.Json;
@@ -12,25 +10,38 @@ using Newtonsoft.Json;
 
 namespace BussinesFacade
 {
-    public class CoinMarketCapService : ICoinMarketCapService
+    public class CoinMarketCapService : ICurrencyService
     {
-        private readonly IAppSettings _settings;
-        private const string SortField = "marcet_cap";
+        private readonly ISettings _settings;
+        private readonly ILogger _logger;
+        private const string SortField = "market_cap";
         private const string SortDirection = "desc";
+        private readonly string _apiKey;
 
-        public CoinMarketCapService(IAppSettings settings)
+        public CoinMarketCapService(ISettings settings, ILogger logger)
         {
             _settings = settings;
+            _logger = logger;
+            _apiKey = _settings.GetSettings("APIKey");
         }
 
-        public CurrencyModel GetCurrencies(int limit, string convertCurrency, int startPosition)
+        public List<Data> GetCurrencies(int limit, string convertCurrency, int startPosition)
         {
-            var url = new UriBuilder(_settings.GetSettings("UrlCryptoCurrencyList"));
+            UriBuilder url;
+            try
+            {
+                url = new UriBuilder(_settings.GetSettings("UrlCryptoCurrencyList"));
+            }
+            catch (Exception error)
+            {
+                _logger.Error(error.Message);
+                return null;
+            }
 
             var queryString = HttpUtility.ParseQueryString(string.Empty);
 
             queryString["sort"] = _settings.GetSettings("SortField", SortField);
-            queryString["sort_dir"] = _settings.GetSettings("SortDirrection", SortDirection);
+            queryString["sort_dir"] = _settings.GetSettings("SortDirection", SortDirection);
 
             queryString["start"] = startPosition.ToString();
             queryString["limit"] = limit.ToString();
@@ -39,35 +50,34 @@ namespace BussinesFacade
             url.Query = queryString.ToString();
 
             var client = new WebClient();
-            client.Headers.Add("X-CMC_PRO_API_KEY", _settings.GetSettings("APIKey"));
+            client.Headers.Add("X-CMC_PRO_API_KEY", _apiKey);
             client.Headers.Add("Accepts", "application/json");
-
-            var json = string.Empty;
+            string json;
             try
             {
                 json = client.DownloadString(url.ToString());
             }
             catch (Exception error)
             {
-                var status = string.IsNullOrEmpty(error.Message)
-                    ? JsonConvert.DeserializeObject<CurrencyModel>(json).Status
-                    : ParseError(error.Message);
+                _logger.Error(error.Message);
+                return null;
             }
 
-
-            var currencies = new CurrencyModel
+            List<Data> currencies;
+            try
             {
-                Status = status,
-                Data = status.ErrorCode == 0
-                    ? JsonConvert.DeserializeObject<CurrencyModel>(json).Data
-                    : null
-            };
-            if (currencies.Data == null) return currencies;
+                currencies = JsonConvert.DeserializeObject<CurrencyModel>(json).Data;
+            }
+            catch (Exception error)
+            {
+                _logger.Error(error.Message);
+                return null;
+            }
 
-            var logoUrlList = GetLogoUrl(currencies.Data.Select(x => x.Id).ToList());
+            var logoUrlList = GetLogoUrl(currencies.Select(x => x.Id).ToList());
             if (logoUrlList == null) return currencies;
 
-            foreach (var currency in currencies.Data)
+            foreach (var currency in currencies)
             {
                 foreach (var logoUrl in logoUrlList)
                 {
@@ -80,7 +90,17 @@ namespace BussinesFacade
 
         private Dictionary<string, CurrencyInfo>.ValueCollection GetLogoUrl(List<long> idList)
         {
-            var url = new UriBuilder(_currencyInfopUrl);
+            UriBuilder url;
+            try
+            {
+                url = new UriBuilder(_settings.GetSettings("UrlCryptoCurrencyInfo"));
+            }
+            catch (Exception error)
+            {
+                _logger.Error(error.Message);
+                return null;
+            }
+
             var queryString = HttpUtility.ParseQueryString(string.Empty);
             queryString["id"] = string.Join(",", idList);
 
@@ -91,27 +111,14 @@ namespace BussinesFacade
             client.Headers.Add("Accepts", "application/json");
             try
             {
-                var json = client.DownloadString(url.ToString());
-                return JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Status.ErrorCode == 0
-                    ? JsonConvert.DeserializeObject<CurrencyInfoModel>(json).Data.Values
-                    : null;
+                return JsonConvert.DeserializeObject<CurrencyInfoModel>(client.DownloadString(url.ToString())).Data
+                    .Values;
             }
-            catch
+            catch (Exception error)
             {
+                _logger.Error(error.Message);
                 return null;
             }
-        }
-
-        private static Status ParseError(string errorMessage)
-        {
-            var errorCode = new ErrorCodes().ErrorsDictionary;
-            foreach (var error in errorCode)
-            {
-                if (errorMessage.Contains(error.Key.ToString()))
-                    return new Status {ErrorCode = error.Key, ErrorMessage = error.Value};
-            }
-
-            return new Status {ErrorCode = 404, ErrorMessage = errorCode[404]};
         }
     }
 }
