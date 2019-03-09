@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Net;
 using System.Web;
 using BussinesFacade.Defenitions;
+using BussinesFacade.Models;
 using Newtonsoft.Json;
 
 
@@ -23,7 +25,7 @@ namespace BussinesFacade
         }
 
         public CurrencyModel GetCurrencies(int limit, string convertCurrency, string sortingFields,
-            string sortDirrections, int startPosition = 1)
+            string sortDirrections, int startPosition)
         {
             var url = new UriBuilder(_coinMarketCapUrl);
 
@@ -39,6 +41,7 @@ namespace BussinesFacade
             var client = new WebClient();
             client.Headers.Add("X-CMC_PRO_API_KEY", _apiKey);
             client.Headers.Add("Accepts", "application/json");
+
             var json = string.Empty;
             var errorString = string.Empty;
             try
@@ -62,13 +65,8 @@ namespace BussinesFacade
                     : null
             };
             if (currencies.Data == null) return currencies;
-            var currenciesIdList = new List<long>();
-            foreach (var currency in currencies.Data)
-            {
-                currenciesIdList.Add(currency.Id);
-            }
 
-            var logoUrlList = GetLogoUrl(currenciesIdList);
+            var logoUrlList = GetLogoUrl(currencies.Data.Select(x => x.Id).ToList());
             if (logoUrlList == null) return currencies;
 
             foreach (var currency in currencies.Data)
@@ -84,7 +82,7 @@ namespace BussinesFacade
 
         public Dictionary<string, CurrencyInfo>.ValueCollection GetLogoUrl(List<long> idList)
         {
-            var url = new UriBuilder("https://pro-api.coinmarketcap.com/v1/cryptocurrency/info");
+            var url = new UriBuilder(_currencyInfopUrl);
             var queryString = HttpUtility.ParseQueryString(string.Empty);
             queryString["id"] = string.Join(",", idList);
 
@@ -106,7 +104,7 @@ namespace BussinesFacade
             }
         }
 
-        private Status ParseError(string errorMessage)
+        private static Status ParseError(string errorMessage)
         {
             var errorCode = new ErrorCodes().ErrorsDictionary;
             foreach (var error in errorCode)
@@ -115,7 +113,8 @@ namespace BussinesFacade
                     return new Status {ErrorCode = error.Key, ErrorMessage = error.Value};
             }
 
-            return new Status { ErrorCode = 404, ErrorMessage = errorCode[404] }; ;
+            return new Status {ErrorCode = 404, ErrorMessage = errorCode[404]};
+            ;
         }
     }
 }

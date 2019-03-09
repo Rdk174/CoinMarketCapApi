@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Web.Mvc;
 using System.Web.UI;
 using AutoMapper;
 using BussinesFacade;
+using BussinesFacade.Defenitions;
+using BussinesFacade.Extensions;
+using BussinesFacade.Models;
 using Web.Models;
 
 namespace Web.Controllers
@@ -15,17 +17,21 @@ namespace Web.Controllers
         private CoinMarketCapService _coinMarketCapService;
         private IndexViewModel _indexViewModel;
         private List<CurrencyViewModel> _currencyView;
-        private const string _defaultFilter = "All";
+        private CurrencyModel _currencyModel;
+        private const int Limit = 30;
+        private const int StartPosition = 1;
+        private const string DefaultFilter = "All";
 
         [OutputCache(Duration = 60, Location = OutputCacheLocation.Client)]
         public ActionResult Index(string currency="")
         {
             _coinMarketCapService = new CoinMarketCapService();
+            _currencyModel = GetCurrencyModel();
             _currencyView = GetCurrencyData();
             _indexViewModel = new IndexViewModel
             {
                 CurrencyView = _currencyView,
-                SelectedFilter = _defaultFilter
+                SelectedFilter = DefaultFilter
             };
             if (!string.IsNullOrEmpty(currency))
             {
@@ -46,26 +52,24 @@ namespace Web.Controllers
             return View(_indexViewModel);
         }
 
-        private CurrencyModel GetCurrenciesModel()
+        private CurrencyModel GetCurrencyModel()
         {
-            int.TryParse(ConfigurationManager.AppSettings["CryptoCurrencyListLimit"], out var limit);
-            int.TryParse(ConfigurationManager.AppSettings["StartPosition"], out var startPosition);
-            var converCurrency = ConfigurationManager.AppSettings["ConvertTo"];
-            var sortingField = ConfigurationManager.AppSettings["SortBy"];
-            var sortDirection = ConfigurationManager.AppSettings["SortDirection"];
+            var limit = Limit;
+            var startPosition = StartPosition;
+            var converCurrency = ConvertCurrency.USD.GetStringValue();
+            var sortingField = SortingFields.MarketCap.GetStringValue();
+            var sortDirection = SortDirrections.Desc.GetStringValue();
 
             return _coinMarketCapService.GetCurrencies(limit, converCurrency, sortingField, sortDirection, startPosition);
         }
         private List<CurrencyViewModel> GetCurrencyData()
         {
-            var currencies = GetCurrenciesModel();
-            return Mapper.Map<List<CurrencyViewModel>>(currencies.Data);
+            return Mapper.Map<List<CurrencyViewModel>>(_currencyModel.Data);
         }
 
         private StatusViewModel GetStatus()
         {
-            var status = GetCurrenciesModel();
-            return Mapper.Map<StatusViewModel>(status.Status);
+            return Mapper.Map<StatusViewModel>(_currencyModel.Status);
         }
     }
 }

@@ -5,11 +5,10 @@
 }
 
 <form class="form-inline" method="get">
-    <br />
     <div class="row">
-        <label style="margin-top: 5px">Filter</label>
-        <select class="form-control input-sm " id="SelectFilter" name="currency">
-            <option value="" name=>All</option>
+        <label for ="Filter">Filter</label>
+        <select class="form-control input-sm " id="Filter" name="currency">
+            <option value="" name="All">All</option>
             @foreach (var name in Model.CurrencyView.Select(x => x.Name).Distinct().OrderBy(x => x))
             {       
                 <option name="@name" @((Model.SelectedFilter == @name ? Html.Raw("selected=\"selected\""):Html.Raw("")))>@name</option>
@@ -27,7 +26,7 @@
                 <th>Symbol</th>
                 <th>Market Cap</th>
                 <th>Price</th>
-                <th>Change 1 hours, %</th>
+                <th>Change 1 hour, %</th>
                 <th>Change 24 hours, %</th>
                 <th>Last updated</th>
             </tr>

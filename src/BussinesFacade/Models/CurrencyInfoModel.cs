@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace BussinesFacade
+namespace BussinesFacade.Models
 {
     public class CurrencyInfoModel
     {

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BussinesFacade;
+using BussinesFacade.Models;
 using Web.Models;
 
 namespace Web
