@@ -16,6 +16,7 @@ namespace Web
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
             Mapper.Initialize(cfg => cfg.AddProfiles(typeof(HomeController)));
+            log4net.Config.XmlConfigurator.Configure();
         }
     }
 }

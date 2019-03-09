@@ -5,57 +5,55 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using BussinesFacade.Defenitions;
+using BussinesFacade.Interfaces;
 using BussinesFacade.Models;
 using Newtonsoft.Json;
 
 
 namespace BussinesFacade
 {
-    public class CoinMarketCapService
+    public class CoinMarketCapService : ICoinMarketCapService
     {
-        private readonly string _coinMarketCapUrl;
-        private readonly string _currencyInfopUrl;
-        private readonly string _apiKey;
+        private readonly IAppSettings _settings;
+        private const string SortField = "marcet_cap";
+        private const string SortDirection = "desc";
 
-        public CoinMarketCapService()
+        public CoinMarketCapService(IAppSettings settings)
         {
-            _coinMarketCapUrl = ConfigurationManager.AppSettings["UrlCryptoCurrencyList"];
-            _currencyInfopUrl = ConfigurationManager.AppSettings["UrlCryptoCurrencyInfo"];
-            _apiKey = ConfigurationManager.AppSettings["APIKey"];
+            _settings = settings;
         }
 
-        public CurrencyModel GetCurrencies(int limit, string convertCurrency, string sortingFields,
-            string sortDirrections, int startPosition)
+        public CurrencyModel GetCurrencies(int limit, string convertCurrency, int startPosition)
         {
-            var url = new UriBuilder(_coinMarketCapUrl);
+            var url = new UriBuilder(_settings.GetSettings("UrlCryptoCurrencyList"));
 
             var queryString = HttpUtility.ParseQueryString(string.Empty);
+
+            queryString["sort"] = _settings.GetSettings("SortField", SortField);
+            queryString["sort_dir"] = _settings.GetSettings("SortDirrection", SortDirection);
+
             queryString["start"] = startPosition.ToString();
             queryString["limit"] = limit.ToString();
             queryString["convert"] = convertCurrency;
-            queryString["sort"] = sortingFields;
-            queryString["sort_dir"] = sortDirrections;
 
             url.Query = queryString.ToString();
 
             var client = new WebClient();
-            client.Headers.Add("X-CMC_PRO_API_KEY", _apiKey);
+            client.Headers.Add("X-CMC_PRO_API_KEY", _settings.GetSettings("APIKey"));
             client.Headers.Add("Accepts", "application/json");
 
             var json = string.Empty;
-            var errorString = string.Empty;
             try
             {
                 json = client.DownloadString(url.ToString());
             }
             catch (Exception error)
             {
-                errorString = error.ToString();
+                var status = string.IsNullOrEmpty(error.Message)
+                    ? JsonConvert.DeserializeObject<CurrencyModel>(json).Status
+                    : ParseError(error.Message);
             }
 
-            var status = string.IsNullOrEmpty(errorString)
-                ? JsonConvert.DeserializeObject<CurrencyModel>(json).Status
-                : ParseError(errorString);
 
             var currencies = new CurrencyModel
             {
@@ -80,7 +78,7 @@ namespace BussinesFacade
             return currencies;
         }
 
-        public Dictionary<string, CurrencyInfo>.ValueCollection GetLogoUrl(List<long> idList)
+        private Dictionary<string, CurrencyInfo>.ValueCollection GetLogoUrl(List<long> idList)
         {
             var url = new UriBuilder(_currencyInfopUrl);
             var queryString = HttpUtility.ParseQueryString(string.Empty);
@@ -114,7 +112,6 @@ namespace BussinesFacade
             }
 
             return new Status {ErrorCode = 404, ErrorMessage = errorCode[404]};
-            ;
         }
     }
 }
