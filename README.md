@@ -7,9 +7,9 @@ CoinMarketCap - веб приложение, которое работает с 
 2.Web - проект для формирования страницы на основе полученных данных. 
 
 Скриншот главной страницы: 
-![workingApp](http://prntscr.com/mvu5t3)
+![workingApp](https://i.imgur.com/DxoKL8M.png)
 
 Скриншот отфильтрованной страницы:
-![filteredPage](http://prntscr.com/mvu8uo)
+![filteredPage](https://i.imgur.com/845BmzJ.png)
 
 На данном этапе для обработки ошибок используется логирование, логи хранятся в C:\Temp\CoinMarketCap\, а так же отображение страницы заглушки.
