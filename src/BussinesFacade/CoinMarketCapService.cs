@@ -27,16 +27,14 @@ namespace BussinesFacade
 
         public List<Data> GetCurrencies(int limit, string convertCurrency, int startPosition)
         {
-            UriBuilder url;
-            try
+            var urlGetCurrencies = _settings.GetSettings("UrlCryptoCurrencyList");
+            if (string.IsNullOrEmpty(urlGetCurrencies))
             {
-                url = new UriBuilder(_settings.GetSettings("UrlCryptoCurrencyList"));
-            }
-            catch (Exception error)
-            {
-                _logger.Error(error.Message);
+                _logger.Error("Bad URL for request currencies");
                 return null;
             }
+
+            var url = new UriBuilder(urlGetCurrencies);
 
             var queryString = HttpUtility.ParseQueryString(string.Empty);
 
@@ -52,21 +50,10 @@ namespace BussinesFacade
             var client = new WebClient();
             client.Headers.Add("X-CMC_PRO_API_KEY", _apiKey);
             client.Headers.Add("Accepts", "application/json");
-            string json;
-            try
-            {
-                json = client.DownloadString(url.ToString());
-            }
-            catch (Exception error)
-            {
-                _logger.Error(error.Message);
-                return null;
-            }
-
             List<Data> currencies;
             try
             {
-                currencies = JsonConvert.DeserializeObject<CurrencyModel>(json).Data;
+                currencies = JsonConvert.DeserializeObject<CurrencyModel>(client.DownloadString(url.ToString())).Data;
             }
             catch (Exception error)
             {
@@ -75,14 +62,12 @@ namespace BussinesFacade
             }
 
             var logoUrlList = GetLogoUrl(currencies.Select(x => x.Id).ToList());
-            if (logoUrlList == null) return currencies;
+            if (logoUrlList == null)
+                return currencies;
 
             foreach (var currency in currencies)
             {
-                foreach (var logoUrl in logoUrlList)
-                {
-                    if (currency.Id == logoUrl.Id) currency.Logo = logoUrl.Logo;
-                }
+                currency.Logo = logoUrlList.FirstOrDefault(x => x.Id == currency.Id)?.Logo;
             }
 
             return currencies;
@@ -90,17 +75,14 @@ namespace BussinesFacade
 
         private Dictionary<string, CurrencyInfo>.ValueCollection GetLogoUrl(List<long> idList)
         {
-            UriBuilder url;
-            try
+            var urlGetCurrenciesInfo = _settings.GetSettings("UrlCryptoCurrencyInfo");
+            if (string.IsNullOrEmpty(urlGetCurrenciesInfo))
             {
-                url = new UriBuilder(_settings.GetSettings("UrlCryptoCurrencyInfo"));
-            }
-            catch (Exception error)
-            {
-                _logger.Error(error.Message);
+                _logger.Error("Bad URL for request currencies info");
                 return null;
             }
 
+            var url = new UriBuilder(urlGetCurrenciesInfo);
             var queryString = HttpUtility.ParseQueryString(string.Empty);
             queryString["id"] = string.Join(",", idList);
 

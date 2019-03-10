@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CoinMarketCapService.cs" />
-    <Compile Include="Interfaces\Ilogger.cs" />
+    <Compile Include="Interfaces\ILogger.cs" />
     <Compile Include="Interfaces\ISettings.cs" />
     <Compile Include="Interfaces\ICurrencyService.cs" />
     <Compile Include="Models\CurrencyInfoModel.cs" />
